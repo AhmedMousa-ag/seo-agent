@@ -45,7 +45,7 @@ def redirect_form():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Redirect Form</title>
+        <title>Blogs Generator</title>
         <style>
             * {
                 margin: 0;

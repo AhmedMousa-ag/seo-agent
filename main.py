@@ -4,7 +4,7 @@ from graph.graph import compiled_graph as graph, State
 from langchain_core.messages import HumanMessage
 from configs.config import SYSTEM_MESSAGE, MEMORY_CONFIG
 
-app = FastAPI(docs_url="/")
+app = FastAPI(docs_url="/docs")
 
 @app.get("/{username}/{keyword}", response_class=HTMLResponse)
 def invoke_endpoint(username: str, keyword: str):
@@ -21,7 +21,7 @@ def invoke_endpoint(username: str, keyword: str):
 async def redirect_to_article(username: str = Form(...), keyword: str = Form(...)):
 	return RedirectResponse(url=f"/{username}/{keyword}", status_code=303)
 
-@app.get("/blog_generator", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 def redirect_form():
     return """
     <!DOCTYPE html>

@@ -13,7 +13,6 @@ def invoke_endpoint(username: str, keyword: str):
 		State(messages=[SYSTEM_MESSAGE, HumanMessage(content=keyword)]),
 		config=MEMORY_CONFIG
 	)
-	print(response)
 	article = response["messages"][-1].content
 	article = article.replace("```html","").replace("```","")
 	return article

@@ -6,8 +6,7 @@ from tools.search import get_search_tools
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import InMemorySaver
 from configs.config import GOOGLE_API_KEY
-from langchain_core.messages import HumanMessage,SystemMessage
-from IPython.display import Image, display
+from langchain_core.messages import SystemMessage
 
 memory = InMemorySaver()
 
@@ -19,19 +18,32 @@ llm.bind_tools([get_search_tools()])
 
 
 def chat_bot(state: State):
+    print("Invoked chat bot")
     response = llm.invoke(state.messages)
     return {"messages": [response]}
 
 
 def search_for_outline(state:State):
+    print("Invoked search for outline")
     key_word = state.messages[1].content
-    state.messages.append(SystemMessage(content=f"Search for an outline and recent trends for {key_word}"))
+    messages = state.messages
+    messages.append(SystemMessage(content=f"Use the Search tool to find an outline and recent trends for {key_word}."))
+    state.messages = messages
+    print(f"Searching for outline for {state.messages[-1]}")
     response = llm.invoke(state.messages)
     state.messages.append(response)
     return {"messages": [response]}
 
 def final_html_response(state:State):
+    print("Invoked html response")
     state.messages.append(SystemMessage(content="Generate a final HTML response based on the search results and outline."))
+    response = llm.invoke(state.messages)
+    state.messages.append(response)
+    return {"messages": [response]}
+
+def attach_imgs_html(state:State):
+    print("Invoked attach images to html")
+    state.messages.append(SystemMessage(content="Attach images to the HTML response as needed, you can search for images and get back the proper urls then update the html content according to the new."))
     response = llm.invoke(state.messages)
     state.messages.append(response)
     return {"messages": [response]}
@@ -40,8 +52,9 @@ graph_builder = StateGraph(State)
 graph_builder.add_node("chat_bot",chat_bot)
 graph_builder.add_node("search_for_outline", search_for_outline)
 graph_builder.add_node("final_html_response", final_html_response)
-graph_builder.add_edge(START,"chat_bot")
-graph_builder.add_edge("chat_bot", "search_for_outline")
+# graph_builder.add_node("attach_imgs_html", attach_imgs_html)
+graph_builder.add_edge(START,"search_for_outline")
+graph_builder.add_edge("search_for_outline", "chat_bot")
 tool_node = ToolNode(tools=[get_search_tools()])
 
 graph_builder.add_node("tools", tool_node)
@@ -56,7 +69,7 @@ graph_builder.add_conditional_edges(
 # Any time a tool is called, we return to the chatbot to decide the next step
 graph_builder.add_edge("tools", "search_for_outline")
 
-graph_builder.add_edge("search_for_outline", "final_html_response")
+graph_builder.add_edge("chat_bot", "final_html_response")
 graph_builder.add_edge("final_html_response", END)
 compiled_graph = graph_builder.compile(checkpointer=memory)
 

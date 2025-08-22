@@ -30,7 +30,11 @@ def search_for_outline(state:State):
     messages.append(SystemMessage(content=f"Use the Search tool to find an outline and recent trends for {key_word}."))
     state.messages = messages
     print(f"Searching for outline for {state.messages[-1]}")
-    response = llm.invoke(state.messages)
+    try:
+        response = llm.invoke(state.messages)
+    except Exception as e:
+        print(f"Error occurred while searching for outline: {e}")
+        response = {"error": str(e)}
     state.messages.append(response)
     return {"messages": [response]}
 

@@ -3,9 +3,16 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from graph.graph import compiled_graph as graph, State
 from langchain_core.messages import HumanMessage
 from configs.config import SYSTEM_MESSAGE, MEMORY_CONFIG
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from fastapi import Request
+from slowapi.errors import RateLimitExceeded
+
 
 app = FastAPI(docs_url="/docs")
-
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 @app.get("/{username}/{keyword}", response_class=HTMLResponse)
 def invoke_endpoint(username: str, keyword: str):
 	MEMORY_CONFIG["configurable"]["thread_id"] = username

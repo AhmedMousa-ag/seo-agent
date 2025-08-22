@@ -21,7 +21,16 @@ def invoke_endpoint(username: str, keyword: str):
 		config=MEMORY_CONFIG
 	)
 	article = response["messages"][-1].content
-	article = article.replace("```html", "").replace("```", "")
+	if isinstance(article, str):
+		article = article.replace("```html", "").replace("```", "")
+	else:
+		article = ""
+		for art in article:
+			if isinstance(art, str):
+				article += art.replace("```html", "").replace("```", "")
+			else:
+				article += str(art)
+		
 	return article
 
 @app.post("/redirect", response_class=HTMLResponse)
